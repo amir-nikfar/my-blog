@@ -59,12 +59,13 @@ class PostTest extends TestCase
 
     public function test_update_post()
     {
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $post = Post::factory()->create(['user_id' => Auth::id()]);
 
-        $response = $this->put(route('posts.update', $post->id), [
+        $response = $this->patch(route('posts.update', $post->id), [
             'title' => 'Updated title',
             'body' => 'Updated body',
         ]);

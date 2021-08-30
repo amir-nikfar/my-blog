@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\File;
 
 class PostController extends Controller
 {
+    // Bypassing authentication for users to see list of posts and actual post
 
     public function __construct() {
-        // Prevent unregistered users
         $this->middleware('auth', ['except' => ['index', 'show']]);
     }
     /**
@@ -22,8 +22,13 @@ class PostController extends Controller
      */
     public function index()
     {
+        // Get all posts
         $posts = Post::latest()->get();
+
+        // Get all ratings
         $ratings = Ratings::all();
+
+        // List Posts+Ratings
         return view('posts.index', compact('posts', 'ratings'));
     }
 
@@ -34,6 +39,7 @@ class PostController extends Controller
      */
     public function create()
     {
+        // Create a Post page
         return view('posts.create');
     }
 
@@ -90,6 +96,7 @@ class PostController extends Controller
      */
     public function show($id)
     {
+        // Show specific Post
         $post = Post::findOrFail($id);
         return view('posts.show', compact('post'));
     }
@@ -105,6 +112,7 @@ class PostController extends Controller
         // Another approach without using policy
         $user_id = auth()->user()->id;
         $post = Post::findOrFail($id);
+
         if ($user_id === $post->user_id) {
             return view('posts.edit', compact('post'));
         }
@@ -122,7 +130,7 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        // if ($request->user()->can('update', $post)) {
+        // if ($request->user()->can('update', $post)) { << handled in policy
             $validatedData = $request->validate([
                 'title' => 'required',
                 'body' => 'required',
@@ -134,6 +142,8 @@ class PostController extends Controller
             if ($request->hasFile('post_image')) {
                 // Delete old image before updating
                 File::delete('storage/images/'. $post->post_image);
+
+                // Handling Image
                 $file = $request->file('post_image');
                 $file_extension = $file->getClientOriginalName();
                 $path = public_path() . '/storage/images';
@@ -166,26 +176,37 @@ class PostController extends Controller
     {
         if ($request->user()->can('delete', $post)) {
 
+            // Delete post on user request + delete image from storage
             File::delete('storage/images/'. $post->post_image);
+
             $post->delete();
+
             $notification = array(
                 'message' => 'Post deleted successfully!',
                 'alert-type' => 'success'
             );
+
             return back()->with($notification);
+
         } else {
             abort(403);
         }
     }
 
     public function list() {
+
+        // List each user Posts
         $user_id = auth()->user()->id;
         $user = User::find($user_id);
         $posts = $user->posts()->get();
         return view('posts.list', compact('posts'));
+
     }
 
     public function deleteImage($id) {
+
+        // Delete image inside the post on edit page
+
         $post = Post::findOrFail($id);
 
         File::delete('storage/images/'. $post->post_image);

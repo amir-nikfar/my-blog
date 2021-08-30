@@ -55,6 +55,7 @@ class PostPolicy
      */
     public function update(User $user, Post $post)
     {
+        // Check whether user owns the Post to update
         return $user->id === $post->user_id
         ? Response::allow()
         : Response::deny('You are not the owner of this post!');
@@ -69,6 +70,7 @@ class PostPolicy
      */
     public function delete(User $user, Post $post)
     {
+        // Check whether user owns the Post to delete
         return $user->id === $post->user_id
         ? Response::allow()
         : Response::deny('You are not the owner of this post!');
